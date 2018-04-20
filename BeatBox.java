@@ -1,5 +1,3 @@
-package games.beatBox;
-
 import javafx.scene.control.RadioButton;
 import javax.sound.midi.*;
 import java.util.ArrayList;
