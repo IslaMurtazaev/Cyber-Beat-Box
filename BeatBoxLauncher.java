@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -62,19 +63,23 @@ public class BeatBoxLauncher extends Application{
 
         Button start = new Button("Start");
         start.setOnAction(event -> beatBox.buildTrackAndStart(notes));
+        start.setPrefSize(80, 10);
 
         Button stop = new Button("Stop");
         stop.setOnAction(event -> beatBox.sequencer.stop());
+        stop.setPrefSize(80, 10);
 
         Button tempUp = new Button("Temp up");
         tempUp.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*1.03f));
-
+        tempUp.setPrefSize(80, 10);
 
         Button tempDown = new Button("Temp down");
         tempDown.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*0.97f));
+        tempDown.setPrefSize(80, 10);
 
         Button clear = new Button("Clear");
         clear.setOnAction(event -> beatBox.clear(notes));
+        clear.setPrefSize(80, 10);
 
         VBox buttons = new VBox(10);
         buttons.setAlignment(Pos.BASELINE_CENTER);
@@ -83,7 +88,7 @@ public class BeatBoxLauncher extends Application{
 
 
         HBox mainLayout = new HBox(10);
-        mainLayout.getChildren().addAll(instruments,beats, buttons);
+        mainLayout.getChildren().addAll(instruments, new SplitPane(), beats, new SplitPane(), buttons);
 
         scene = new Scene(mainLayout);
         window.setResizable(false);
