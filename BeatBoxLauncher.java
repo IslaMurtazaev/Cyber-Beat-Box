@@ -2,14 +2,13 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.*;
 import java.util.ArrayList;
 
 public class BeatBoxLauncher extends Application{
@@ -17,6 +16,7 @@ public class BeatBoxLauncher extends Application{
     Scene scene;
     BeatBox beatBox;
     ArrayList<RadioButton> notes;
+    boolean isPlaying = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -29,8 +29,28 @@ public class BeatBoxLauncher extends Application{
         window = primaryStage;
         window.setTitle("Cyber BeatBox");
 
-        VBox instruments = new VBox(10);
-        instruments.setPadding(new Insets(10, 0, 0, 10));
+        MenuBar menuBar = new MenuBar();
+        menuBar.setPadding(new Insets(2));
+
+        Menu file = new Menu("File");
+        MenuItem save = new MenuItem("Save Music Pattern");
+        save.setOnAction(event -> serialize());
+        MenuItem restore = new MenuItem("Restore Music Pattern");
+        restore.setOnAction(event -> deserialize());
+        MenuItem close = new MenuItem("Close");
+        close.setOnAction(event -> shutDown());
+        file.getItems().addAll(save, restore, close);
+
+
+        Menu help = new Menu("Help");
+        MenuItem guide = new MenuItem("Guide");
+        help.getItems().add(guide);
+
+        menuBar.getMenus().addAll(file, help);
+
+
+        VBox instruments = new VBox(8);
+        instruments.setPadding(new Insets(3, 0, 3, 13));
         instruments.setAlignment(Pos.BASELINE_CENTER);
 
         String[] instrumentNames = {"Bass Drum", "Closed Hi-Hat", "Open Hi-Hat", "Acoustic Snare", "Crash Cymbal",
@@ -44,8 +64,8 @@ public class BeatBoxLauncher extends Application{
 
 
         GridPane beats = new GridPane();
-        beats.setPadding(new Insets(14, 0, 0, 0));
-        beats.setVgap(4.7);
+        beats.setPadding(new Insets(10, 0, 0, 0));
+        beats.setVgap(11);
         beats.setHgap(8);
         beats.setPrefSize(200, 200);
 
@@ -53,6 +73,7 @@ public class BeatBoxLauncher extends Application{
         for (int i = 0; i < 16; i++){
             for (int j = 0; j < 16; j++){
                 RadioButton beat = new RadioButton();
+                beat.setOnAction(event -> changeRhythm()); // Make CBB dynamic
                 notes.add(beat);
                 beat.setPrefSize(25, 25);
                 beats.add(beat, j, i);
@@ -62,40 +83,97 @@ public class BeatBoxLauncher extends Application{
 
 
         Button start = new Button("Start");
-        start.setOnAction(event -> beatBox.buildTrackAndStart(notes));
+        start.setOnAction(event -> startPlaying());
         start.setPrefSize(80, 10);
 
         Button stop = new Button("Stop");
-        stop.setOnAction(event -> beatBox.sequencer.stop());
+        stop.setOnAction(event -> stopPlaying());
         stop.setPrefSize(80, 10);
 
         Button tempUp = new Button("Temp up");
-        tempUp.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*1.03f));
+        tempUp.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*1.06f));
         tempUp.setPrefSize(80, 10);
 
         Button tempDown = new Button("Temp down");
-        tempDown.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*0.97f));
+        tempDown.setOnAction(event -> beatBox.sequencer.setTempoFactor(beatBox.sequencer.getTempoFactor()*0.94f));
         tempDown.setPrefSize(80, 10);
 
         Button clear = new Button("Clear");
-        clear.setOnAction(event -> beatBox.clear(notes));
+        clear.setOnAction(event -> clearAndStop());
         clear.setPrefSize(80, 10);
 
         VBox buttons = new VBox(10);
         buttons.setAlignment(Pos.BASELINE_CENTER);
-        buttons.setPadding(new Insets(10, 0, 10, 0));
+        buttons.setPadding(new Insets(7, 0, 7, 0));
         buttons.getChildren().addAll(start, stop, tempUp, tempDown, clear);
 
 
-        HBox mainLayout = new HBox(10);
-        mainLayout.getChildren().addAll(instruments, new SplitPane(), beats, new SplitPane(), buttons);
+        HBox body = new HBox(10);
+        body.getChildren().addAll(instruments, new SplitPane(), beats, new SplitPane(), buttons);
 
-        scene = new Scene(mainLayout);
+        VBox mainScene = new VBox();
+        mainScene.getChildren().addAll(menuBar, body);
+
+        scene = new Scene(mainScene);
         window.setResizable(false);
-        window.setMinHeight(540);
+        window.setMaxHeight(520);
         window.setMinWidth(690);
         window.setScene(scene);
         window.show();
-        window.setOnCloseRequest(event -> beatBox.sequencer.close());
+        window.setOnCloseRequest(event -> shutDown());
+    }
+
+    private void startPlaying(){
+        beatBox.buildTrackAndStart(notes);
+        isPlaying = true;
+    }
+    private void stopPlaying(){
+        beatBox.sequencer.stop();
+        isPlaying = false;
+    }
+    private void clearAndStop(){
+        beatBox.clear(notes);
+        isPlaying = false;
+    }
+    private void changeRhythm(){
+        if (isPlaying)
+            beatBox.buildTrackAndStart(notes);
+    }
+    private void shutDown(){
+        window.close();
+        beatBox.sequencer.close();
+    }
+
+    private void serialize(){
+        boolean[] patternToSave = new boolean[notes.size()];
+        for (int i = 0; i < notes.size(); i++){
+            patternToSave[i] = notes.get(i).isSelected();
+        }
+        try{
+            File filePath =  new FileChooser().showSaveDialog(window);
+            ObjectOutputStream fileOutStream = new ObjectOutputStream(new FileOutputStream(filePath));
+            fileOutStream.writeObject(patternToSave);
+            fileOutStream.close();
+        } catch (IOException ex){
+            System.out.println("Couldn't serialize the pattern");
+            ex.printStackTrace();
+        }
+    }
+
+    private void deserialize(){
+        clearAndStop();
+        boolean[] restored = new boolean[notes.size()];
+        try{
+            File filePath =  new FileChooser().showOpenDialog(window);
+            ObjectInputStream fileInStream = new ObjectInputStream(new FileInputStream(filePath));
+            restored = (boolean[]) fileInStream.readObject(); // casting back
+            fileInStream.close();
+        } catch (Exception ex){
+            System.out.println("Couldn't deserialize the pattern");
+            ex.printStackTrace();
+        }
+        for (int i = 0; i < notes.size(); i++) {
+            notes.get(i).setSelected(restored[i]);
+        }
     }
 }
