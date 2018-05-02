@@ -1,8 +1,11 @@
+package games.beatBox;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
@@ -41,10 +44,10 @@ public class BeatBoxLauncher extends Application{
         close.setOnAction(event -> shutDown());
         file.getItems().addAll(save, restore, close);
 
-
         Menu help = new Menu("Help");
-        MenuItem guide = new MenuItem("Guide");
-        help.getItems().add(guide);
+        MenuItem aboutMe = new MenuItem("About app");
+        aboutMe.setOnAction(event -> giveInfo());
+        help.getItems().add(aboutMe);
 
         menuBar.getMenus().addAll(file, help);
 
@@ -113,12 +116,13 @@ public class BeatBoxLauncher extends Application{
 
         VBox mainScene = new VBox();
         mainScene.getChildren().addAll(menuBar, body);
-
+        mainScene.setStyle("-fx-background-color: #ffb217");
         scene = new Scene(mainScene);
         window.setResizable(false);
         window.setMaxHeight(520);
         window.setMinWidth(690);
         window.setScene(scene);
+        window.getIcons().add(new Image("file:C:\\Users\\Admin\\Downloads\\Work\\icone.jpg"));
         window.show();
         window.setOnCloseRequest(event -> shutDown());
     }
@@ -175,5 +179,14 @@ public class BeatBoxLauncher extends Application{
         for (int i = 0; i < notes.size(); i++) {
             notes.get(i).setSelected(restored[i]);
         }
+    }
+
+    private void giveInfo(){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("About me");
+        alert.setHeaderText("Cyber Beat Box");
+        alert.setContentText("is a project that was made by Islam Murtazaev to successfully end second academic" +
+                " semester at International Ala-Too University, CS department and was inspired by HeadFirst book.");
+        alert.showAndWait();
     }
 }
