@@ -1,19 +1,16 @@
+package beatBox;
+
 import javafx.scene.control.RadioButton;
 import javax.sound.midi.*;
 import java.util.ArrayList;
 
-
 public class BeatBox {
+    public Sequencer sequencer;
+    private Sequence sequence;
+    private Track track;
+    private int[] instruments = {35, 42, 46, 38, 49, 39, 50, 60, 70, 72, 64, 56, 58, 47, 67, 63};
 
-    Sequencer sequencer;
-    Sequence sequence;
-    Track track;
-
-
-    int[] instruments = {35, 42, 46, 38, 49, 39, 50, 60, 70, 72, 64, 56, 58, 47, 67, 63};
-
-
-    public void buildTrackAndStart(ArrayList<RadioButton> rbs){
+    public void buildTrackAndStart(ArrayList<RadioButton> notes){
         sequence.deleteTrack(track);
         track = sequence.createTrack();
 
@@ -24,8 +21,8 @@ public class BeatBox {
 
             for (int j = 0; j < 16; j++) {
 
-                RadioButton rb = rbs.get(j + (i*16));
-                if (rb.isSelected()){
+                RadioButton note = notes.get(j + (i*16));
+                if (note.isSelected()){
                     trackList[j] = key;
                 } else {
                     trackList[j] = 0;
@@ -41,7 +38,7 @@ public class BeatBox {
             sequencer.setSequence(sequence);
             sequencer.setLoopCount(sequencer.LOOP_CONTINUOUSLY);
             sequencer.start();
-            sequencer.setTempoInBPM(120);
+            sequencer.setTempoFactor(1.0f);
         } catch (InvalidMidiDataException ex){
             ex.printStackTrace();
         }
@@ -53,7 +50,7 @@ public class BeatBox {
             sequencer.open();
             sequence = new Sequence(Sequence.PPQ, 4);
             track = sequence.createTrack();
-            sequencer.setTempoInBPM(120);
+            sequencer.setTempoFactor(1.0f);
 
         } catch (MidiUnavailableException | InvalidMidiDataException ex){
             ex.printStackTrace();
@@ -61,18 +58,18 @@ public class BeatBox {
 
     }
 
-    public void makeTracks(int[] list){
+    private void makeTracks(int[] list){
         for (int i = 0; i < 16; i++) {
-            int key = list[i];
+            int instrument = list[i];
 
-            if (key != 0){
-                track.add(makeEvent(144, 9, key, 100, i));
-                track.add(makeEvent(128, 9, key, 100, i+1));
+            if (instrument != 0){
+                track.add(makeEvent(144, 9, instrument, 100, i));
+                track.add(makeEvent(128, 9, instrument, 100, i+1));
             }
         }
     }
 
-    public MidiEvent makeEvent(int comd, int chan, int data1, int data2, int tick){
+    private MidiEvent makeEvent(int comd, int chan, int data1, int data2, int tick){
 
         MidiEvent event = null;
 
@@ -93,7 +90,7 @@ public class BeatBox {
             sequence.deleteTrack(track);
             track = sequence.createTrack();
             sequencer.setSequence(sequence);
-            sequencer.setTempoInBPM(120);
+            sequencer.setTempoFactor(1.0f);
         } catch (InvalidMidiDataException ex){
             ex.printStackTrace();
         }
@@ -102,4 +99,4 @@ public class BeatBox {
         }
     }
 
-}
+} // END of class
